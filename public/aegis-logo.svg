@@ -1,0 +1,26 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+  aria-label="AEGIS Logo"
+  role="img"
+>
+  <defs>
+    <path
+      id="aegis-shield"
+      d="M12 22C12 22 4.5 16.5 4.5 11V3.5H19.5V11C19.5 16.5 12 22 12 22Z"
+    />
+  </defs>
+  <use href="#aegis-shield" fill="#b91c1c" />
+  <use
+    href="#aegis-shield"
+    stroke-linejoin="round"
+    stroke="#4B5869"
+    stroke-width="1.5"
+    fill="none"
+  />
+  <circle cx="12" cy="11" r="5" fill="white" />
+  <path
+    d="M12 7.5C12.8284 7.5 13.5 8.17157 13.5 9V11H15C15.8284 11 16.5 11.6716 16.5 12.5C16.5 13.3284 15.8284 14 15 14H13.5V16C13.5 16.8284 12.8284 17.5 12 17.5C11.1716 17.5 10.5 16.8284 10.5 16V14H9C8.17157 14 7.5 13.3284 7.5 12.5C7.5 11.6716 8.17157 11 9 11H10.5V9C10.5 8.17157 11.1716 7.5 12 7.5Z"
+    fill="#1F2937"
+  />
+</svg>
