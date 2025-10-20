@@ -24,7 +24,7 @@ const AegisLogo: React.FC<AegisLogoProps> = ({ size = 'medium' }) => {
           />
           <circle cx="12" cy="11.5" r="5" fill="white" />
           <path
-            d="M11 8.5 H13 V10 H14.5 V12 H13 V13.5 H11 V12 H9.5 V10 H11 V8.5 Z"
+            d="M9 10.5 H 11 V 9.5 H 13 V 10.5 H 15 V 12.5 H 13 V 13.5 H 11 V 12.5 H 9 Z"
             fill="none"
             stroke="#111827"
             strokeWidth="1"
