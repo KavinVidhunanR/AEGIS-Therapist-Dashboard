@@ -16,18 +16,18 @@ const AegisLogo: React.FC<AegisLogoProps> = ({ size = 'medium' }) => {
           role="img"
           className="w-full h-full"
         >
-          <path 
-            d="M12,22 C12,22 4,16 4,8.5 C4,4.5 5.5,2 12,2 C18.5,2 20,4.5 20,8.5 C20,16 12,22 12,22Z" 
-            fill="#b91c1c" 
+          <path
+            d="M4 2h16v9c0 7-8 11-8 11s-8-4-8-11V2z"
+            fill="#b91c1c"
             stroke="#4b5563"
             strokeWidth="0.5"
           />
-          <circle cx="12" cy="10" r="4.5" fill="white" />
-          <path 
-            d="M11.25 7.5 H12.75 V10 H15 V11.5 H12.75 V14 H11.25 V11.5 H9 V10 H11.25 V7.5 Z"
-            fill="white"
+          <circle cx="12" cy="11.5" r="5" fill="white" />
+          <path
+            d="M11 8.5 H13 V10 H14.5 V12 H13 V13.5 H11 V12 H9.5 V10 H11 V8.5 Z"
+            fill="none"
             stroke="#111827"
-            strokeWidth="0.35"
+            strokeWidth="1"
             strokeLinejoin="round"
           />
         </svg>
