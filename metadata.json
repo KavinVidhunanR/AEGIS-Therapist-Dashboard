@@ -1,0 +1,5 @@
+{
+  "name": "AEGIS Therapist Dashboard",
+  "description": "A secure, professional web application for therapists to view AI-generated summaries of their assigned patients' chat sessions in a read-only format.",
+  "requestFramePermissions": []
+}

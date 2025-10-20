@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-g" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AEGIS Therapist Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --bg-main: #f8f9fa; /* Soft off-white */
+        --bg-subtle: #ffffff; /* White for cards/modals */
+        --bg-accent: #b91c1c; /* Strong red from logo */
+        --bg-accent-darker: #991b1b;
+        --bg-user: #e9ecef; /* Light grey for user messages */
+        --bg-accent-subtle: #fee2e2; /* Light red for highlights */
+        
+        --text-main: #212529; /* Very dark grey for main text */
+        --text-heading: #111827; /* A slightly darker black for headings */
+        --text-muted: #6c757d; /* Muted grey for secondary text */
+        --text-light: #ffffff; /* White text for dark backgrounds */
+        --text-accent: #b91c1c; /* Strong red for text */
+        
+        --border-color: #dee2e6;
+        --border-accent: #fca5a5; /* Red for borders */
+
+        /* Therapist Mode Colors (Legacy - kept for potential future use but replaced in UI) */
+        --bg-therapist-header: #f4f2ff; /* Very light purple */
+        --bg-therapist-accent: #6d28d9; /* Deep violet */
+        --bg-therapist-accent-darker: #5b21b6;
+        --bg-therapist-summary: #faf5ff; /* Lighter purple */
+        --border-therapist: #c4b5fd; /* Soft violet */
+        --text-therapist-heading: #5b21b6;
+
+        --font-sans: 'Inter', sans-serif;
+      }
+      body {
+        font-family: var(--font-sans);
+        background-color: var(--bg-main);
+        color: var(--text-main);
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .animate-fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+      }
+      .animate-fade-in-delayed {
+        animation: fadeIn 0.5s ease-out 0.2s forwards; /* 0.2s delay */
+        opacity: 0; /* Start hidden to prevent flash */
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "@supabase/supabase-js": "https://aistudiocdn.com/@supabase/supabase-js@^2.75.1"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
