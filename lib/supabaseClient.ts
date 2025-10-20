@@ -1,7 +1,14 @@
-// FIX: The manual type definitions for `import.meta.env` were incorrect and did not correctly
-// augment the global types. Using the Vite client types reference is the standard and correct
-// way to provide types for environment variables in a Vite project.
-/// <reference types="vite/client" />
+// FIX: Manually define types for import.meta.env.
+// The `<reference types="vite/client" />` directive was failing in this environment.
+// Using `declare global` correctly augments the global `ImportMeta` type.
+declare global {
+  interface ImportMeta {
+    readonly env: {
+      readonly VITE_SUPABASE_URL: string;
+      readonly VITE_SUPABASE_ANON_KEY: string;
+    };
+  }
+}
 
 import { createClient } from '@supabase/supabase-js';
 
