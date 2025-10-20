@@ -4,8 +4,20 @@
   aria-label="AEGIS Logo"
   role="img"
 >
-  <path d="M4 2h16v9c0 7-8 11-8 11s-8-4-8-11V2z" fill="#b91c1c" stroke="black" stroke-width="0.2" />
-  <circle cx="12" cy="11.5" r="4.5" fill="white" />
-  <rect x="11" y="8.5" width="2" height="5" fill="white" stroke="black" stroke-width="0.2" />
-  <rect x="9.5" y="10" width="5" height="2" fill="white" stroke="black" stroke-width="0.2" />
+  <path
+    d="M12 22C12 22 4.5 16.5 4.5 11V3.5H19.5V11C19.5 16.5 12 22 12 22Z"
+    fill="#b91c1c"
+  />
+  <path
+    d="M12 22C12 22 4.5 16.5 4.5 11V3.5H19.5V11C19.5 16.5 12 22 12 22Z"
+    stroke-linejoin="round"
+    stroke="#4B5869"
+    stroke-width="1.5"
+    fill="none"
+  />
+  <circle cx="12" cy="11" r="5" fill="white" />
+  <path
+    d="M11 9h2v1h2v2h-2v1h-2v-1H9v-2h2V9z"
+    fill="#1F2937"
+  />
 </svg>
