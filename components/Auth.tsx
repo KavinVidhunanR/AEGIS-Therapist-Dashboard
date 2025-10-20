@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import AegisLogo from './AegisLogo';
 
 const Auth: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -10,13 +9,32 @@ const Auth: React.FC = () => {
   const [message, setMessage] = useState<string | null>(null);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setMessage(null);
     setLoading(true);
+    
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      let error;
+      if (authMode === 'signin') {
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+        error = signInError;
+      } else {
+        const { error: signUpError } = await supabase.auth.signUp({ 
+          email, 
+          password,
+          options: {
+            emailRedirectTo: window.location.origin,
+          }
+        });
+        if (signUpError) {
+          error = signUpError;
+        } else {
+          setMessage("Sign up successful! Please check your email for a confirmation link.");
+          setAuthMode('signin'); // Switch back to sign in view
+        }
+      }
       if (error) {
         setError(error.message);
       }
@@ -27,26 +45,6 @@ const Auth: React.FC = () => {
     }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setMessage(null);
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signUp({ email, password });
-      if (error) {
-        setError(error.message);
-      } else {
-        setMessage("Sign up successful! Please check your email for a confirmation link. Your account will require administrator approval before you can log in.");
-        setAuthMode('signin'); // Switch back to sign in view
-      }
-    } catch (err: any) {
-      setError(err.error_description || err.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   const toggleMode = () => {
     setEmail('');
     setPassword('');
@@ -56,74 +54,72 @@ const Auth: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg-main)] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="mx-auto w-fit">
-            <AegisLogo />
-        </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-[var(--text-heading)]">
-          Therapist Dashboard
-        </h2>
-        <p className="mt-2 text-center text-sm text-[var(--text-muted)]">
-          {authMode === 'signin' ? 'Sign in to your professional account' : 'Create a new professional account'}
-        </p>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-[var(--bg-subtle)] py-8 px-4 shadow-lg sm:rounded-lg sm:px-10 border border-[var(--border-color)]">
-          <form className="space-y-6" onSubmit={authMode === 'signin' ? handleLogin : handleSignUp}>
+    <div className="min-h-screen bg-[var(--bg-main)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md">
+        <div className="bg-white py-12 px-8 shadow-md rounded-2xl">
+          
+          <div className="flex items-center gap-4 mb-8">
+            <img src="/aegis-logo.svg" alt="AEGIS Logo" className="h-12 w-12" />
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-[var(--text-main)]">
+              <h1 className="text-3xl font-bold text-[var(--text-heading)] tracking-tight">AEGIS</h1>
+              <p className="text-sm text-[var(--text-muted)]">Mind, Health, Voice</p>
+            </div>
+          </div>
+
+          <h2 className="text-2xl font-bold text-[var(--text-heading)] mb-8">
+            {authMode === 'signin' ? 'Sign in to your account' : 'Create your account'}
+          </h2>
+
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <div>
+              <label htmlFor="email" className="sr-only">
                 Email address
               </label>
-              <div className="mt-1">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm placeholder-[var(--text-muted)] focus:outline-none focus:ring-[var(--bg-accent)] focus:border-[var(--bg-accent)] sm:text-sm"
-                />
-              </div>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email address"
+                className="appearance-none block w-full px-3 py-3 border border-[var(--border-color)] rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[var(--text-accent)] focus:border-[var(--text-accent)] sm:text-sm"
+              />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-[var(--text-main)]">
+              <label htmlFor="password" className="sr-only">
                 Password
               </label>
-              <div className="mt-1">
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm placeholder-[var(--text-muted)] focus:outline-none focus:ring-[var(--bg-accent)] focus:border-[var(--bg-accent)] sm:text-sm"
-                />
-              </div>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                className="appearance-none block w-full px-3 py-3 border border-[var(--border-color)] rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[var(--text-accent)] focus:border-[var(--text-accent)] sm:text-sm"
+              />
             </div>
-
+            
             {error && <p className="text-sm text-red-600 animate-fade-in">{error}</p>}
             {message && <p className="text-sm text-green-600 animate-fade-in">{message}</p>}
-
 
             <div>
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-[var(--text-light)] bg-[var(--bg-accent)] hover:bg-[var(--bg-accent-darker)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--bg-accent-darker)] disabled:opacity-50 transition-colors"
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-[var(--text-light)] bg-[var(--bg-accent)] hover:bg-[var(--bg-accent-darker)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--bg-accent-darker)] disabled:opacity-50 transition-colors"
               >
-                {loading ? (authMode === 'signin' ? 'Signing in...' : 'Signing up...') : (authMode === 'signin' ? 'Sign in' : 'Sign up')}
+                {loading ? (authMode === 'signin' ? 'Signing in...' : 'Creating account...') : (authMode === 'signin' ? 'Sign in' : 'Sign up')}
               </button>
             </div>
           </form>
           
-          <div className="mt-6 text-sm text-center">
+          <div className="mt-8 text-center text-sm">
              <p className="text-[var(--text-muted)]">
                 {authMode === 'signin' ? "Don't have an account?" : "Already have an account?"}{' '}
                 <button
