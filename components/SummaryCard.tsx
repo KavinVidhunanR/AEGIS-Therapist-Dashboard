@@ -15,10 +15,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ summary }) => {
   const { created_at, summary_data } = summary;
   const { moodCues, possibleStressors, suggestedFollowUp } = summary_data;
 
-  const formattedDate = new Date(created_at).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
+  const formattedTime = new Date(created_at).toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit',
   });
@@ -27,7 +24,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ summary }) => {
     <div className="bg-[var(--bg-subtle)] border border-[var(--border-color)] rounded-lg shadow-sm p-5 animate-fade-in-delayed">
       <div className="mb-4">
         <p className="text-sm font-semibold text-[var(--text-accent)]">
-          Summary from {formattedDate}
+          Summary captured at {formattedTime}
         </p>
       </div>
 

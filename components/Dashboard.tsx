@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabaseClient';
 import { TeenProfile, SummaryRecord, TherapistProfile } from '../types';
@@ -10,6 +10,17 @@ interface DashboardProps {
   session: Session;
 }
 
+interface DayGroup {
+  date: Date;
+  sessions: SummaryRecord[][];
+}
+
+interface GroupedSummaries {
+  [dateKey: string]: DayGroup;
+}
+
+const SESSION_GAP_MINUTES = 30;
+
 const Dashboard: React.FC<DashboardProps> = ({ session }) => {
   const [therapist, setTherapist] = useState<TherapistProfile | null>(null);
   const [patients, setPatients] = useState<TeenProfile[]>([]);
@@ -19,6 +30,7 @@ const Dashboard: React.FC<DashboardProps> = ({ session }) => {
   const [loadingSummaries, setLoadingSummaries] = useState(false);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false); // For temp clear button
 
   useEffect(() => {
     const fetchTherapistProfile = async () => {
@@ -74,42 +86,79 @@ const Dashboard: React.FC<DashboardProps> = ({ session }) => {
     setEndDate(null);
   }, [selectedPatientId]);
 
+  // Extracted fetchSummaries to be callable from multiple places
+  const fetchSummaries = async () => {
+    if (!selectedPatientId) return;
+
+    setLoadingSummaries(true);
+    setSummaries([]);
+    
+    let query = supabase
+      .from('summaries')
+      .select('id, created_at, teen_id, summary_data')
+      .eq('teen_id', selectedPatientId);
+
+    if (startDate) {
+      query = query.gte('created_at', startDate.toISOString());
+    }
+
+    if (endDate) {
+      // Create a new date object to avoid mutating state
+      const endOfDay = new Date(endDate.getTime());
+      // Set to the end of the day in UTC to include the whole day in the filter
+      endOfDay.setUTCHours(23, 59, 59, 999);
+      query = query.lte('created_at', endOfDay.toISOString());
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching summaries:', error);
+    } else if (data) {
+      setSummaries(data as SummaryRecord[]);
+    }
+    setLoadingSummaries(false);
+  };
+
   useEffect(() => {
-    const fetchSummaries = async () => {
-      if (!selectedPatientId) return;
-
-      setLoadingSummaries(true);
-      setSummaries([]);
-      
-      let query = supabase
-        .from('summaries')
-        .select('id, created_at, teen_id, summary_data')
-        .eq('teen_id', selectedPatientId);
-
-      if (startDate) {
-        query = query.gte('created_at', startDate.toISOString());
-      }
-
-      if (endDate) {
-        // Create a new date object to avoid mutating state
-        const endOfDay = new Date(endDate.getTime());
-        // Set to the end of the day in UTC to include the whole day in the filter
-        endOfDay.setUTCHours(23, 59, 59, 999);
-        query = query.lte('created_at', endOfDay.toISOString());
-      }
-
-      const { data, error } = await query.order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching summaries:', error);
-      } else if (data) {
-        setSummaries(data as SummaryRecord[]);
-      }
-      setLoadingSummaries(false);
-    };
-
     fetchSummaries();
   }, [selectedPatientId, startDate, endDate]);
+
+  const groupedSummaries = useMemo<GroupedSummaries>(() => {
+    if (summaries.length === 0) return {};
+
+    const sorted = [...summaries].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    
+    const groups: GroupedSummaries = {};
+
+    for (const summary of sorted) {
+        const summaryDate = new Date(summary.created_at);
+        // Use local date for grouping to match user's perspective
+        const dateKey = `${summaryDate.getFullYear()}-${String(summaryDate.getMonth() + 1).padStart(2, '0')}-${String(summaryDate.getDate()).padStart(2, '0')}`;
+
+        if (!groups[dateKey]) {
+            groups[dateKey] = { date: summaryDate, sessions: [] };
+        }
+
+        const dayGroup = groups[dateKey];
+        const lastSession = dayGroup.sessions[dayGroup.sessions.length - 1];
+        const lastSummaryInSession = lastSession?.[lastSession.length - 1];
+
+        if (lastSummaryInSession) {
+            const lastSummaryDate = new Date(lastSummaryInSession.created_at);
+            const diffMinutes = (summaryDate.getTime() - lastSummaryDate.getTime()) / (1000 * 60);
+            
+            if (diffMinutes > SESSION_GAP_MINUTES) {
+                dayGroup.sessions.push([summary]); // Start a new session
+            } else {
+                lastSession.push(summary); // Add to the existing session
+            }
+        } else {
+            dayGroup.sessions.push([summary]); // First summary of the day, start the first session
+        }
+    }
+    return groups;
+  }, [summaries]);
   
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -123,6 +172,32 @@ const Dashboard: React.FC<DashboardProps> = ({ session }) => {
         setter(new Date(Date.UTC(year, month - 1, day)));
     } else {
         setter(null);
+    }
+  };
+
+  const handleClearData = async () => {
+    if (!selectedPatientId) return;
+
+    const patientName = patients.find(p => p.id === selectedPatientId)?.unique_display_id || 'this patient';
+    const confirmed = window.confirm(
+      `Are you sure you want to permanently delete all summaries for ${patientName}? This action cannot be undone.`
+    );
+
+    if (confirmed) {
+      setIsDeleting(true);
+      const { error } = await supabase
+        .from('summaries')
+        .delete()
+        .eq('teen_id', selectedPatientId);
+
+      if (error) {
+        console.error('Error deleting summaries:', error);
+        alert('Failed to delete summaries. See console for details.');
+      } else {
+        // Refetch summaries to show the empty state
+        fetchSummaries();
+      }
+      setIsDeleting(false);
     }
   };
 
@@ -192,15 +267,56 @@ const Dashboard: React.FC<DashboardProps> = ({ session }) => {
                 >
                     Reset
                 </button>
+                 {/* Temporary Clear Data Button */}
+                <div className="ml-auto">
+                    <button
+                        onClick={handleClearData}
+                        disabled={isDeleting || summaries.length === 0}
+                        className="py-1.5 px-3 border border-yellow-400 bg-yellow-50 rounded-md shadow-sm text-sm font-medium text-yellow-800 hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        aria-label="Clear all summaries for this patient"
+                    >
+                        {isDeleting ? 'Clearing...' : 'Clear Data (Temp)'}
+                    </button>
+                </div>
               </div>
 
               {loadingSummaries ? (
                 <p className="text-[var(--text-muted)]">Loading summaries...</p>
-              ) : summaries.length > 0 ? (
-                <div className="space-y-4">
-                  {summaries.map(summary => (
-                    <SummaryCard key={summary.id} summary={summary} />
-                  ))}
+              ) : Object.keys(groupedSummaries).length > 0 ? (
+                <div className="space-y-8">
+                  {Object.keys(groupedSummaries).sort().reverse().map(dateKey => {
+                    const { date, sessions } = groupedSummaries[dateKey];
+                    const formattedDate = date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                    
+                    return (
+                        <div key={dateKey}>
+                            <h3 className="text-xl font-semibold text-[var(--text-heading)] border-b-2 border-[var(--border-color)] pb-2 mb-4">
+                                {formattedDate}
+                            </h3>
+                            <div className="space-y-6">
+                                {sessions.map((session, sessionIndex) => {
+                                    const sessionStartTime = new Date(session[0].created_at).toLocaleTimeString('en-US', {
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    });
+                                    return (
+                                        <div key={sessionIndex} className="p-4 border border-[var(--border-color)] rounded-lg bg-white/50 shadow-sm">
+                                            <h4 className="text-lg font-semibold text-[var(--text-main)] mb-3">
+                                                Session {sessionIndex + 1}
+                                                <span className="ml-2 font-normal text-sm text-[var(--text-muted)]">(Started around {sessionStartTime})</span>
+                                            </h4>
+                                            <div className="space-y-4">
+                                                {session.map(summary => (
+                                                    <SummaryCard key={summary.id} summary={summary} />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-12 px-6 bg-[var(--bg-subtle)] rounded-lg border border-[var(--border-color)]">
