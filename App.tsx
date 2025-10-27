@@ -69,7 +69,9 @@ const App: React.FC = () => {
 
     const checkTherapistRole = async () => {
       if (session?.user?.id) {
-        setIsTherapist(null); // Reset while checking
+        // No longer reset isTherapist to null here. This prevents the loading
+        // screen from showing on every tab re-focus, allowing for silent
+        // re-validation in the background.
         try {
           const { data, error } = await supabase
             .from('therapists')
@@ -88,6 +90,7 @@ const App: React.FC = () => {
           setIsTherapist(false);
         }
       } else {
+        // If there's no session, reset the therapist status.
         setIsTherapist(null);
       }
     };
