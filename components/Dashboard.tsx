@@ -19,7 +19,7 @@ interface GroupedSummaries {
   [dateKey: string]: DayGroup;
 }
 
-const SESSION_GAP_MINUTES = 30;
+const SESSION_GAP_MINUTES = 10;
 
 const Dashboard: React.FC<DashboardProps> = ({ session }) => {
   const [therapist, setTherapist] = useState<TherapistProfile | null>(null);
@@ -176,11 +176,8 @@ const Dashboard: React.FC<DashboardProps> = ({ session }) => {
   };
 
   const handleClearData = async () => {
-    if (!selectedPatientId) return;
-
-    const patientName = patients.find(p => p.id === selectedPatientId)?.unique_display_id || 'this patient';
     const confirmed = window.confirm(
-      `Are you sure you want to permanently delete all summaries for ${patientName}? This action cannot be undone.`
+      'Are you sure you want to permanently delete ALL summaries for ALL patients? This action cannot be undone.'
     );
 
     if (confirmed) {
@@ -188,13 +185,13 @@ const Dashboard: React.FC<DashboardProps> = ({ session }) => {
       const { error } = await supabase
         .from('summaries')
         .delete()
-        .eq('teen_id', selectedPatientId);
+        .not('id', 'is', null); // This targets all rows in the table.
 
       if (error) {
-        console.error('Error deleting summaries:', error);
-        alert('Failed to delete summaries. See console for details.');
+        console.error('Error deleting all summaries:', error);
+        alert('Failed to delete all summaries. See console for details.');
       } else {
-        // Refetch summaries to show the empty state
+        // Refetch summaries for the currently selected patient to update the view.
         fetchSummaries();
       }
       setIsDeleting(false);
@@ -273,7 +270,7 @@ const Dashboard: React.FC<DashboardProps> = ({ session }) => {
                         onClick={handleClearData}
                         disabled={isDeleting || summaries.length === 0}
                         className="py-1.5 px-3 border border-yellow-400 bg-yellow-50 rounded-md shadow-sm text-sm font-medium text-yellow-800 hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        aria-label="Clear all summaries for this patient"
+                        aria-label="Clear all summaries for all patients"
                     >
                         {isDeleting ? 'Clearing...' : 'Clear Data (Temp)'}
                     </button>
