@@ -19,7 +19,7 @@ interface GroupedSummaries {
   [dateKey: string]: DayGroup;
 }
 
-const SESSION_GAP_MINUTES = 10;
+const SESSION_GAP_MINUTES = 30;
 
 const Dashboard: React.FC<DashboardProps> = ({ session }) => {
   const [therapist, setTherapist] = useState<TherapistProfile | null>(null);
